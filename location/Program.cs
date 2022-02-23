@@ -16,14 +16,17 @@ public class Whois
     static List<string> ParseArgs(string[] pArgs, out bool pValid)
     {
         List<string> output = new List<string>();
+        bool protocolFound = false;
 
         for(int i = 0; i < pArgs.Length; i++)
         {
+            protocolFound = false;
             foreach (string p in mProtocols) //find protocol
             {
                 if (pArgs[i] == p)
                 {
                     mCurrentProtocol = p;
+                    protocolFound = true;
                 }
             }
 
@@ -45,7 +48,7 @@ public class Whois
                 mCurrentPort = int.Parse(pArgs[i + 1]);
                 i++;
             }
-            else
+            else if(!protocolFound)
             {
                 output.Add(pArgs[i]);
             }
@@ -60,49 +63,54 @@ public class Whois
         bool valid;
         List<string> arguments = ParseArgs(args, out valid);
 
-        try
+        if(valid)
         {
-            TcpClient client = new TcpClient();
-
-            client.Connect(mCurrentAddress, mCurrentPort);
-
-            StreamWriter writer = new StreamWriter(client.GetStream());
-            StreamReader reader = new StreamReader(client.GetStream());
-
-            if(mCurrentProtocol == "whois")
+            try
             {
-                if (arguments.Count == 1)
-                {
-                    writer.WriteLine(arguments[0]);
-                    writer.Flush();
-                    Console.WriteLine(arguments[0] + " is " + reader.ReadToEnd());
-                }
-                else if (args.Length == 2)
-                {
-                    writer.WriteLine(args[0] + " " + args[1]);
-                    writer.Flush();
+                TcpClient client = new TcpClient();
 
-                    string error = reader.ReadToEnd();
+                client.Connect(mCurrentAddress, mCurrentPort);
 
-                    if (error == "OK\r\n")
+                StreamWriter writer = new StreamWriter(client.GetStream());
+                StreamReader reader = new StreamReader(client.GetStream());
+
+                if (mCurrentProtocol == "whois")
+                {
+                    if (arguments.Count == 1)
                     {
-                        Console.WriteLine(args[0] + " location changed to be " + args[1]);
+                        writer.WriteLine(arguments[0]);
+                        writer.Flush();
+                        Console.WriteLine(arguments[0] + " is " + reader.ReadLine());
+                    }
+                    else if (arguments.Count == 2)
+                    {
+                        writer.WriteLine(arguments[0] + " " + arguments[1]);
+                        writer.Flush();
+
+                        string error = reader.ReadLine();
+
+                        if (error == "OK")
+                        {
+                            Console.WriteLine(arguments[0] + " location changed to be " + arguments[1]);
+                        }
+                        else
+                        {
+                            Console.WriteLine("ERROR: Something went wrong");
+                        }
                     }
                     else
                     {
-                        Console.WriteLine("ERROR: Something went wrong");
+                        Console.WriteLine("Something went wrong");
                     }
                 }
-                else
-                {
-                    Console.WriteLine("Something went wrong");
-                }
-            }
 
+            }
+            catch
+            {
+                Console.WriteLine("Something went wrong");
+            }
         }
-        catch
-        {
-            Console.WriteLine("Something went wrong");
-        }
+
+        Console.ReadLine();
     }
 }
