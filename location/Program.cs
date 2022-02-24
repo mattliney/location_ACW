@@ -7,7 +7,7 @@ public class Whois
 {
     static string[] mProtocols = new string[4]
     {
-        "whois", "-h0", "-h1", "h9"
+        "whois", "-h0", "-h1", "-h9"
     };
     static int mCurrentPort = 43;
     static string mCurrentProtocol = mProtocols[0];
@@ -43,12 +43,12 @@ public class Whois
                     i++;
                 }
             }
-            else if(pArgs[i] == "-p")
+            else if(pArgs[i] == "-p") // find port
             {
                 mCurrentPort = int.Parse(pArgs[i + 1]);
                 i++;
             }
-            else if(!protocolFound)
+            else if(!protocolFound) // add argument to list
             {
                 output.Add(pArgs[i]);
             }
@@ -93,6 +93,7 @@ public class Whois
                         {
                             Console.WriteLine(arguments[0] + " location changed to be " + arguments[1]);
                         }
+
                         else
                         {
                             Console.WriteLine("ERROR: Something went wrong");
@@ -102,6 +103,11 @@ public class Whois
                     {
                         Console.WriteLine("Something went wrong");
                     }
+                }
+                else if(mCurrentProtocol == "-h9")
+                {
+                    writer.WriteLine("GET /" + arguments[0] + "\r\n");
+                    writer.Flush();
                 }
 
             }
