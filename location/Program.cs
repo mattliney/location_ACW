@@ -106,8 +106,64 @@ public class Whois
                 }
                 else if(mCurrentProtocol == "-h9")
                 {
-                    writer.WriteLine("GET /" + arguments[0] + "\r\n");
-                    writer.Flush();
+                    if(arguments.Count == 1)
+                    {
+                        writer.WriteLine("GET /" + arguments[0] + "\r\n");
+                        writer.Flush();
+                        Console.WriteLine(arguments[0] + " is " + reader.ReadToEnd());
+                    }
+                    else if (arguments.Count == 2)
+                    {
+                        writer.WriteLine("PUT /" + arguments[0] + "\r\n\r\n" + arguments[1] + "\r\n");
+                        writer.Flush();
+
+                        string response = reader.ReadToEnd();
+                        if(response == "OK")
+                        {
+                            Console.WriteLine(arguments[0] + " has changed to be " + arguments[1]);
+                        }
+                    }
+                }
+                else if (mCurrentProtocol == "-h0")
+                {
+                    if (arguments.Count == 1)
+                    {
+                        writer.WriteLine("GET /?" + arguments[0] + " HTTP/1.0\r\n\r\n");
+                        writer.Flush();
+                        Console.WriteLine(arguments[0] + " is " + reader.ReadToEnd());
+                    }
+                    else if (arguments.Count == 2)
+                    {
+                        writer.WriteLine("POST /" + arguments[0] + " HTTP/1.0" + "\r\n" + "Content-Length: " + arguments[1].Length + "\r\n\r\n" + arguments[1]);
+                        writer.Flush();
+
+                        string response = reader.ReadToEnd();
+                        if (response == "OK")
+                        {
+                            Console.WriteLine(arguments[0] + " has changed to be " + arguments[1]);
+                        }
+                    }
+                }
+                else if (mCurrentProtocol == "-h1")
+                {
+                    if (arguments.Count == 1)
+                    {
+                        writer.WriteLine("GET /?name=" + arguments[0] + " HTTP/1.1\r\n" + "Host: " + mCurrentAddress + "\r\n\r\n");
+                        writer.Flush();
+                        Console.WriteLine(arguments[0] + " is " + reader.ReadToEnd());
+                    }
+                    else if (arguments.Count == 2)
+                    {
+                        
+                        writer.WriteLine("POST / HTTP/1.1" + "\r\nHost: " + mCurrentAddress + "\r\nContent-Length: " + arguments[1].Length + "\r\n\r\nname=" + arguments[0] + "&location=" + arguments[1]);
+                        writer.Flush();
+
+                        string response = reader.ReadLine();
+                        if (response == "OK")
+                        {
+                            Console.WriteLine(arguments[0] + " has changed to be " + arguments[1]);
+                        }
+                    }
                 }
 
             }
