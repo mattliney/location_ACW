@@ -61,6 +61,7 @@ public class Whois
     static void Main(string[] args)
     {
         bool valid;
+        bool html = false;
         List<string> arguments = ParseArgs(args, out valid);
 
         if(valid)
@@ -153,29 +154,22 @@ public class Whois
                     {
                         writer.WriteLine("GET /?name=" + arguments[0] + " HTTP/1.1\r\n" + "Host: " + mCurrentAddress + "\r\n\r\n");
                         writer.Flush();
-                        Console.WriteLine(arguments[0] + " is ");
+                        Console.Write(arguments[0] + " is ");
 
                         string str = string.Empty;
-                        bool html = false;
 
-                        while(str != "</html>")
+                        while(str != "</html")
                         {
-                            str = reader.ReadToEnd();
-                            if(str[0] == '<')
+                            str = reader.ReadLine();
+                            if(!str.StartsWith("<"))
                             {
-                                Console.Write(str);
-                                html = true;
                                 continue;
                             }
                             else
                             {
-                                Console.Write(str);
+                                html = true;
+                                Console.WriteLine(str);
                             }
-                        }
-
-                        if(html)
-                        {
-                            throw new Exception();
                         }
                     }
                     else if (arguments.Count == 2)
@@ -196,8 +190,15 @@ public class Whois
             }
             catch(Exception e)
             {
-                Console.WriteLine(e.ToString());
+                if(!html)
+                {
+                    Console.WriteLine(e.ToString());
+                }
             }
+        }
+        else
+        {
+            Console.WriteLine("Not enough arguments provided");
         }
     }
 }
