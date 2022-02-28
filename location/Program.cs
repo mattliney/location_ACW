@@ -57,7 +57,7 @@ public class Whois
         pValid = true;
         return output;
     }
-    
+
     static void Main(string[] args)
     {
         bool valid;
@@ -153,7 +153,30 @@ public class Whois
                     {
                         writer.WriteLine("GET /?name=" + arguments[0] + " HTTP/1.1\r\n" + "Host: " + mCurrentAddress + "\r\n\r\n");
                         writer.Flush();
-                        Console.WriteLine(arguments[0] + " is " + reader.ReadToEnd());
+                        Console.WriteLine(arguments[0] + " is ");
+
+                        string str = string.Empty;
+                        bool html = false;
+
+                        while(str != "</html>")
+                        {
+                            str = reader.ReadToEnd();
+                            if(str[0] == '<')
+                            {
+                                Console.Write(str);
+                                html = true;
+                                continue;
+                            }
+                            else
+                            {
+                                Console.Write(str);
+                            }
+                        }
+
+                        if(html)
+                        {
+                            throw new Exception();
+                        }
                     }
                     else if (arguments.Count == 2)
                     {
@@ -171,12 +194,10 @@ public class Whois
                 }
 
             }
-            catch
+            catch(Exception e)
             {
-                Console.WriteLine("Something went wrong");
+                Console.WriteLine(e.ToString());
             }
         }
-
-        Console.ReadLine();
     }
 }
