@@ -154,8 +154,9 @@ public class Whois
                     }
                     else if (arguments.Count == 2)
                     {
-                        
-                        writer.WriteLine("POST / HTTP/1.1" + "\r\nHost: " + mCurrentAddress + "\r\nContent-Length: " + arguments[1].Length + "\r\n\r\nname=" + arguments[0] + "&location=" + arguments[1]);
+                        string message = "name=" + arguments[0] + "&location=" + arguments[1];
+                        int length = message.Length;
+                        writer.WriteLine("POST / HTTP/1.1" + "\r\nHost: " + mCurrentAddress + "\r\nContent-Length: " + length + "\r\n\r\nname=" + arguments[0] + "&location=" + arguments[1]);
                         writer.Flush();
 
                         string response = reader.ReadLine();
