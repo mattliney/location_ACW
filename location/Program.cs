@@ -74,6 +74,9 @@ public class Whois
                 StreamWriter writer = new StreamWriter(client.GetStream());
                 StreamReader reader = new StreamReader(client.GetStream());
 
+                client.ReceiveTimeout = 1000;
+                client.SendTimeout = 1000;
+
                 if (mCurrentProtocol == "whois")
                 {
                     if (arguments.Count == 1)
