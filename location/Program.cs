@@ -12,10 +12,11 @@ public class Whois
     static int mCurrentPort = 43;
     static string mCurrentProtocol = mProtocols[0];
     static string mCurrentAddress = "whois.net.dcs.hull.ac.uk";
+    static string mName = null;
+    static string mLocation = null;
 
-    static List<string> ParseArgs(string[] pArgs, out bool pValid)
+    static void ParseArgs(string[] pArgs, out bool pValid)
     {
-        List<string> output = new List<string>();
         bool protocolFound = false;
 
         for(int i = 0; i < pArgs.Length; i++)
@@ -35,7 +36,7 @@ public class Whois
                 if(pArgs.Length < 3)
                 {
                     pValid = false;
-                    return output;
+                    return;
                 }
                 else
                 {
@@ -50,19 +51,52 @@ public class Whois
             }
             else if(!protocolFound) // add argument to list
             {
-                output.Add(pArgs[i]);
+                if(mName == null)
+                {
+                    mName = pArgs[i];
+                }
+                else
+                {
+                    mLocation = pArgs[i];
+                }
             }
         }
 
         pValid = true;
-        return output;
+    }
+
+    static void ReadAndWriteResponse(StreamReader pReader)
+    {
+        if(mCurrentProtocol == "whois")
+        {
+            Console.WriteLine(pReader.ReadToEnd());
+            return;
+        }
+
+        string location = "";
+        string str = pReader.ReadLine();
+
+        while (str != "")
+        {
+            str = pReader.ReadLine();
+        }
+
+        try
+        {
+            while (true)
+            {
+                location += pReader.ReadLine() + "\r\n";
+            }
+        }
+        catch { }
+
+        Console.Write(location);
     }
 
     static void Main(string[] args)
     {
         bool valid;
-        bool html = false;
-        List<string> arguments = ParseArgs(args, out valid);
+        ParseArgs(args, out valid);
 
         if(valid)
         {
@@ -80,22 +114,24 @@ public class Whois
 
                 if (mCurrentProtocol == "whois")
                 {
-                    if (arguments.Count == 1)
+                    if (mLocation == null)
                     {
-                        writer.WriteLine(arguments[0]);
+                        writer.WriteLine(mName);
                         writer.Flush();
-                        Console.WriteLine(arguments[0] + " is " + reader.ReadLine());
+                        Console.Write(mName + " is ");
+
+                        ReadAndWriteResponse(reader);
                     }
-                    else if (arguments.Count == 2)
+                    else
                     {
-                        writer.WriteLine(arguments[0] + " " + arguments[1]);
+                        writer.WriteLine(mName + " " + mLocation);
                         writer.Flush();
 
                         string error = reader.ReadLine();
 
                         if (error == "OK")
                         {
-                            Console.WriteLine(arguments[0] + " location changed to be " + arguments[1]);
+                            Console.WriteLine(mName + " location changed to be " + mLocation);
                         }
 
                         else
@@ -103,86 +139,72 @@ public class Whois
                             Console.WriteLine("ERROR: Something went wrong");
                         }
                     }
-                    else
-                    {
-                        Console.WriteLine("Something went wrong");
-                    }
                 }
                 else if(mCurrentProtocol == "-h9")
                 {
-                    if(arguments.Count == 1)
+                    if(mLocation == null)
                     {
-                        writer.WriteLine("GET /" + arguments[0] + "\r\n");
+                        writer.WriteLine("GET /" + mName + "\r\n");
                         writer.Flush();
-                        Console.WriteLine(arguments[0] + " is " + reader.ReadToEnd());
+                        Console.Write(mName + " is ");
+
+                        ReadAndWriteResponse(reader);
                     }
-                    else if (arguments.Count == 2)
+                    else
                     {
-                        writer.WriteLine("PUT /" + arguments[0] + "\r\n\r\n" + arguments[1] + "\r\n");
+                        writer.WriteLine("PUT /" + mName + "\r\n\r\n" + mLocation + "\r\n");
                         writer.Flush();
 
                         string response = reader.ReadToEnd();
                         if(response == "OK")
                         {
-                            Console.WriteLine(arguments[0] + " has changed to be " + arguments[1]);
+                            Console.WriteLine(mName + " has changed to be " + mLocation);
                         }
                     }
                 }
                 else if (mCurrentProtocol == "-h0")
                 {
-                    if (arguments.Count == 1)
+                    if (mLocation == null)
                     {
-                        writer.WriteLine("GET /?" + arguments[0] + " HTTP/1.0\r\n\r\n");
+                        writer.WriteLine("GET /?" + mName + " HTTP/1.0\r\n\r\n");
                         writer.Flush();
-                        Console.WriteLine(arguments[0] + " is " + reader.ReadToEnd());
+                        Console.Write(mName + " is ");
+
+                        ReadAndWriteResponse(reader);
                     }
-                    else if (arguments.Count == 2)
+                    else
                     {
-                        writer.WriteLine("POST /" + arguments[0] + " HTTP/1.0" + "\r\n" + "Content-Length: " + arguments[1].Length + "\r\n\r\n" + arguments[1]);
+                        writer.WriteLine("POST /" + mName + " HTTP/1.0" + "\r\n" + "Content-Length: " + mLocation.Length + "\r\n\r\n" + mLocation);
                         writer.Flush();
 
                         string response = reader.ReadToEnd();
                         if (response == "OK")
                         {
-                            Console.WriteLine(arguments[0] + " has changed to be " + arguments[1]);
+                            Console.WriteLine(mName + " has changed to be " + mLocation);
                         }
                     }
                 }
                 else if (mCurrentProtocol == "-h1")
                 {
-                    if (arguments.Count == 1)
+                    if (mLocation == null)
                     {
-                        writer.WriteLine("GET /?name=" + arguments[0] + " HTTP/1.1\r\n" + "Host: " + mCurrentAddress + "\r\n\r\n");
+                        writer.WriteLine("GET /?name=" + mName + " HTTP/1.1\r\n" + "Host: " + mCurrentAddress + "\r\n\r\n");
                         writer.Flush();
-                        Console.Write(arguments[0] + " is ");
+                        Console.Write(mName + " is ");
 
-                        string str = string.Empty;
-
-                        while(str != "</html")
-                        {
-                            str = reader.ReadLine();
-                            if(!str.StartsWith("<"))
-                            {
-                                continue;
-                            }
-                            else
-                            {
-                                html = true;
-                                Console.WriteLine(str);
-                            }
-                        }
+                        ReadAndWriteResponse(reader);
                     }
-                    else if (arguments.Count == 2)
+                    else
                     {
-                        string message = "name=" + arguments[0] + "&location=" + arguments[1];
+                        string message = "name=" + mName + "&location=" + mLocation;
                         int length = message.Length;
-                        writer.WriteLine("POST / HTTP/1.1" + "\r\nHost: " + mCurrentAddress + "\r\nContent-Length: " + length + "\r\n\r\nname=" + arguments[0] + "&location=" + arguments[1]);
+                        writer.WriteLine("POST / HTTP/1.1" + "\r\nHost: " + mCurrentAddress + "\r\nContent-Length: " + length + "\r\n\r\nname=" + mName + "&location=" + mLocation);
                         writer.Flush();
 
-                        string response = reader.ReadLine();
+                        string response = reader.ReadToEnd();
                         if (response == "OK")
                         {
-                            Console.WriteLine(arguments[0] + " has changed to be " + arguments[1]);
+                            Console.WriteLine(mName + " has changed to be " + mLocation);
                         }
                     }
                 }
@@ -190,10 +212,7 @@ public class Whois
             }
             catch(Exception e)
             {
-                if(!html)
-                {
-                    Console.WriteLine(e.ToString());
-                }
+                Console.WriteLine(e.ToString());
             }
         }
         else
