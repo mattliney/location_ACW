@@ -65,7 +65,7 @@ public class Whois
         pValid = true;
     }
 
-    static void ReadAndWriteResponse(StreamReader pReader)
+    static void SingleArgResponse(StreamReader pReader)
     {
         //WHOIS
 
@@ -108,6 +108,33 @@ public class Whois
         }
     }
 
+    static void DoubleArgsResponse(StreamWriter pWriter, StreamReader pReader)
+    {
+        string response = pReader.ReadLine();
+        if (mCurrentProtocol == "whois")
+        {
+
+            if (response == "OK")
+            {
+                Console.WriteLine(mName + " location changed to be " + mLocation);
+            }
+
+            else
+            {
+                Console.WriteLine("ERROR: Something went wrong");
+            }
+
+            return;
+        }
+
+        if (response.Contains("200"))
+        {
+            Console.WriteLine(mName + " location changed to be " + mLocation);
+        }
+
+        return;
+    }
+
     static void Main(string[] args)
     {
         bool valid;
@@ -134,24 +161,14 @@ public class Whois
                         writer.WriteLine(mName);
                         writer.Flush();
 
-                        ReadAndWriteResponse(reader);
+                        SingleArgResponse(reader);
                     }
                     else
                     {
                         writer.WriteLine(mName + " " + mLocation);
                         writer.Flush();
 
-                        string error = reader.ReadLine();
-
-                        if (error == "OK")
-                        {
-                            Console.WriteLine(mName + " location changed to be " + mLocation);
-                        }
-
-                        else
-                        {
-                            Console.WriteLine("ERROR: Something went wrong");
-                        }
+                        DoubleArgsResponse(writer, reader);
                     }
                 }
                 else if(mCurrentProtocol == "-h9")
@@ -162,18 +179,14 @@ public class Whois
                         writer.Flush();
                         Console.Write(mName + " is ");
 
-                        ReadAndWriteResponse(reader);
+                        SingleArgResponse(reader);
                     }
                     else
                     {
                         writer.WriteLine("PUT /" + mName + "\r\n\r\n" + mLocation + "\r\n");
                         writer.Flush();
 
-                        string response = reader.ReadLine();
-                        if (response.Contains("200"))
-                        {
-                            Console.WriteLine(mName + " location changed to be " + mLocation);
-                        }
+                        DoubleArgsResponse(writer, reader);
                     }
                 }
                 else if (mCurrentProtocol == "-h0")
@@ -184,18 +197,14 @@ public class Whois
                         writer.Flush();
                         Console.Write(mName + " is ");
 
-                        ReadAndWriteResponse(reader);
+                        SingleArgResponse(reader);
                     }
                     else
                     {
                         writer.WriteLine("POST /" + mName + " HTTP/1.0" + "\r\n" + "Content-Length: " + mLocation.Length + "\r\n\r\n" + mLocation);
                         writer.Flush();
 
-                        string response = reader.ReadLine();
-                        if (response.Contains("200"))
-                        {
-                            Console.WriteLine(mName + " location changed to be " + mLocation);
-                        }
+                        DoubleArgsResponse(writer, reader);
                     }
                 }
                 else if (mCurrentProtocol == "-h1")
@@ -206,7 +215,7 @@ public class Whois
                         writer.Flush();
                         Console.Write(mName + " is ");
 
-                        ReadAndWriteResponse(reader);
+                        SingleArgResponse(reader);
                     }
                     else
                     {
@@ -215,11 +224,7 @@ public class Whois
                         writer.WriteLine("POST / HTTP/1.1" + "\r\nHost: " + mCurrentAddress + "\r\nContent-Length: " + length + "\r\n\r\nname=" + mName + "&location=" + mLocation);
                         writer.Flush();
 
-                        string response = reader.ReadLine();
-                        if (response.Contains("200"))
-                        {
-                            Console.WriteLine(mName + " location changed to be " + mLocation);
-                        }
+                        DoubleArgsResponse(writer, reader);
                     }
                 }
 
