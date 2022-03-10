@@ -99,7 +99,12 @@ public class Whois
             {
                 while (true)
                 {
-                    location += pReader.ReadLine() + "\r\n";
+                    string temp = pReader.ReadLine();
+                    if(temp == null)
+                    {
+                        break;
+                    }
+                    location += temp + "\r\n";
                 }
             }
             catch { }
@@ -238,5 +243,6 @@ public class Whois
         {
             Console.WriteLine("Not enough arguments provided");
         }
+
     }
 }
