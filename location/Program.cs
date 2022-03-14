@@ -14,6 +14,7 @@ public class Whois
     static string mCurrentAddress = "whois.net.dcs.hull.ac.uk";
     static string mName = null;
     static string mLocation = null;
+    static bool mDebug = false;
 
     static void ParseArgs(string[] pArgs, out bool pValid)
     {
@@ -49,6 +50,10 @@ public class Whois
                 mCurrentPort = int.Parse(pArgs[i + 1]);
                 i++;
             }
+            else if(pArgs[i] == "-d")
+            {
+                mDebug = true;
+            }
             else if(!protocolFound) // add argument to list
             {
                 if(mName == null)
@@ -60,6 +65,12 @@ public class Whois
                     mLocation = pArgs[i];
                 }
             }
+        }
+
+        if(mDebug == true)
+        {
+            Console.WriteLine("Debug Mode:");
+            Console.WriteLine("Current Address: " + mCurrentAddress + "\r\nCurrent Port: " + mCurrentPort + "\r\nCurrent Protocol: " + mCurrentProtocol + "\r\nName: " + mName + "\r\nLocation: " + mLocation);
         }
 
         pValid = true;
