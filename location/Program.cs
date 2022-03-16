@@ -16,6 +16,11 @@ public class Whois
     static string mLocation = null;
     static bool mDebug = false;
 
+    /// <summary>
+    /// Parse the arguments from the command line. Takes in the array of arguments and outputs a boolean. Having fewer than 3 arguments outputs false.
+    /// </summary>
+    /// <param name="pArgs"></param>
+    /// <param name="pValid"></param>
     static void ParseArgs(string[] pArgs, out bool pValid)
     {
         bool protocolFound = false;
@@ -76,6 +81,10 @@ public class Whois
         pValid = true;
     }
 
+    /// <summary>
+    /// Reads the response from the server when the client sends a single argument. Will output an error if the name is not in the database or output their location if they are found in the database.
+    /// </summary>
+    /// <param name="pReader"></param>
     static void SingleArgResponse(StreamReader pReader)
     {
         //WHOIS
@@ -124,6 +133,11 @@ public class Whois
         }
     }
 
+    /// <summary>
+    /// Reads the response from the server when the client sends two arguments. Will output an error if something goes wrong on the server's end. Will output their location if they have been successfully updated.
+    /// </summary>
+    /// <param name="pWriter"></param>
+    /// <param name="pReader"></param>
     static void DoubleArgsResponse(StreamWriter pWriter, StreamReader pReader)
     {
         string response = pReader.ReadLine();
@@ -151,6 +165,10 @@ public class Whois
         return;
     }
 
+    /// <summary>
+    /// Connects to the server and switches on the current protocol. Depending on the protocol and whether or not the location has been specified, the client will send the message in a different format.
+    /// </summary>
+    /// <param name="args"></param>
     static void Main(string[] args)
     {
         bool valid;
